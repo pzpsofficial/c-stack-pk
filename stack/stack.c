@@ -107,7 +107,7 @@ void *stack_pop() {
     return data;
 }
 
-Stack *stack_search(bool (*match)(void *data, void *search_data), void *search_data) {
+void *stack_search(bool (*match)(void *data, void *search_data), void *search_data) {
     Stack *current = last_item;
 
     while (current != NULL) {
@@ -126,6 +126,8 @@ void *stack_save_to_file(char *fileName) {
     FILE *file = fopen(file_path, "wb");
 
     if (!file) {
+        free(file_path);
+
         handle_error(&(AppError){
             LEVEL_ERROR_PANIC,
             ERROR_EXIT
@@ -178,6 +180,10 @@ void *stack_read_from_file(char *fileName, void (*print)(void *data), void (*ser
 }
 
 void stack_reverse() {
+    if (last_item == NULL) {
+        return;
+    }
+
     Stack *prev = NULL;
     Stack *current = last_item;
     Stack *next = NULL;

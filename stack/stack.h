@@ -22,8 +22,8 @@ void stack_display();
 void *stack_save_to_file(char *fileName);
 void *stack_read_from_file(char *fileName, void (*print)(void *data), void (*serialize)(void *data, FILE *file), void *(*deserialize)(FILE *file), void (*destroy)(void *data));
 void *stack_pop();
+void *stack_search(bool (*match)(void *data, void *searchData), void *searchData);
 Stack *stack_push(void *data, void (*print)(void *data), void (*serialize)(void *data, FILE *file), void *(*deserialize)(FILE *file), void (*destroy)(void *data));
-Stack *stack_search(bool (*match)(void *data, void *searchData), void *searchData);
 
 
 #endif //STACK_H

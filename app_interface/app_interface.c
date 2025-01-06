@@ -23,7 +23,7 @@ void menu() {
     printf("Menu:\n");
     printf(OUTPUT_DELIMITER);
 
-    for (size_t i = 0; i<=APP_INTERFACE_EXIT; ++i) {
+    for (size_t i = 0; i <= APP_INTERFACE_EXIT; ++i) {
         printf("%s\n", menu_items[i]);
     }
 

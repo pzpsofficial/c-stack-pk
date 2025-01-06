@@ -11,19 +11,16 @@ char *construct_root_file_path(const char *root_relative_path, const char *file_
     char *file_path = malloc(buffer_size);
 
     if (!file_path) {
-        free(file_path);
-
         handle_error(&(AppError){
             LEVEL_ERROR_PANIC,
             ERROR_MEMORY_ALLOCATION
         });
-
         return NULL;
     }
 
-    strcpy(file_path, "./../");
+    strcpy(file_path, root_relative_path);
     strcat(file_path, file_name);
-    strcat(file_path, ".bin");
+    strcat(file_path, file_ext);
 
     return file_path;
 }

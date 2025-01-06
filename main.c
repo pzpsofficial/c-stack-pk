@@ -10,7 +10,12 @@ int main(void) {
     while (1) {
         menu();
         printf(SELECT_OPERATION_MESSAGE);
-        scanf("%d", &operation);
+
+        if (scanf("%d", &operation) != 1) {
+            printf("Invalid input. Please enter a valid number.\n");
+            while (getchar() != '\n'); // Clear invalid input
+            continue;
+        }
 
         switch (operation) {
             case APP_INTERFACE_DISPLAY:

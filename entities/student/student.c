@@ -99,7 +99,6 @@ void *student_deserialize(FILE *file) {
             LEVEL_ERROR_PANIC,
             ERROR_MEMORY_ALLOCATION,
         });
-
         return NULL;
     }
 
@@ -108,8 +107,7 @@ void *student_deserialize(FILE *file) {
             LEVEL_ERROR,
             ERROR_FAILED_TO_READ_DATA_FROM_FILE,
         });
-
-        student_free(student);
+        free(student); // Free `student` on failure
         return NULL;
     }
 
@@ -118,8 +116,7 @@ void *student_deserialize(FILE *file) {
             LEVEL_ERROR,
             ERROR_FAILED_TO_READ_DATA_FROM_FILE,
         });
-
-        student_free(student);
+        free(student); // Free `student` on failure
         return NULL;
     }
 
@@ -129,8 +126,7 @@ void *student_deserialize(FILE *file) {
             LEVEL_ERROR,
             ERROR_FAILED_TO_READ_DATA_FROM_FILE,
         });
-
-        student_free(student);
+        free(student); // Free `student` on failure
         return NULL;
     }
 
@@ -140,7 +136,7 @@ void *student_deserialize(FILE *file) {
            LEVEL_ERROR_PANIC,
            ERROR_MEMORY_ALLOCATION,
        });
-
+        free(student); // Free `student` on failure
         return NULL;
     }
 
@@ -149,8 +145,8 @@ void *student_deserialize(FILE *file) {
             LEVEL_ERROR,
             ERROR_FAILED_TO_READ_DATA_FROM_FILE,
         });
-
-        student_free(student);
+        free(student->last_name);
+        free(student); // Free `student` and `last_name` on failure
         return NULL;
     }
 
