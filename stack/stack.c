@@ -167,7 +167,7 @@ void *stack_read_from_file(char *fileName, void (*print)(void *data), void (*ser
 
     last_item = NULL;
 
-    while (1) {
+    while (!feof(file)) {
         void *data = deserialize(file);
         if (!data) {
             break;
