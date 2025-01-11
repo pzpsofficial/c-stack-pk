@@ -4,8 +4,8 @@ project(stack C)
 set(CMAKE_C_STANDARD 11)
 
 add_executable(stack main.c
-        error-handler/error_handler.c
-        error-handler/error_handler.h
+        error_handler/error_handler.c
+        error_handler/error_handler.h
         stack/stack.c
         stack/stack.h
         app_interface/app_interface.c

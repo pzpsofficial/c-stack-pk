@@ -13,29 +13,29 @@ int main(void) {
 
         if (scanf("%d", &operation) != 1) {
             printf("Invalid input. Please enter a valid number.\n");
-            while (getchar() != '\n'); // Clear invalid input
+            while (getchar() != '\n');
             continue;
         }
 
         switch (operation) {
             case APP_INTERFACE_DISPLAY:
                 display();
-                break;
+            break;
             case APP_INTERFACE_PUSH:
                 push();
-                break;
+            break;
             case APP_INTERFACE_POP:
                 pop();
-                break;
+            break;
             case APP_INTERFACE_SEARCH:
                 search();
-                break;
+            break;
             case APP_INTERFACE_SAVE_TO_FILE:
                 save_to_file();
-                break;
+            break;
             case APP_INTERFACE_READ_FROM_FILE:
                 read_from_file();
-                break;
+            break;
             case APP_INTERFACE_EXIT:
                 app_exit();
                 return 0;

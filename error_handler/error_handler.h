@@ -21,6 +21,7 @@ typedef enum {
     ERROR_INVALID_USER_INPUT,
     ERROR_FAILED_TO_OPEN_FILE,
     ERROR_FAILED_TO_READ_DATA_FROM_FILE,
+    ERROR_FAILED_TO_READ_NUMBER_FROM_SCANF,
     ERROR_EXIT
 } ERRORS_MAP;
 
@@ -29,6 +30,6 @@ typedef struct AppError {
     ERRORS_MAP code;
 } AppError;
 
-void handle_error(AppError *error);
+void handle_error(AppError* error);
 
 #endif //ERROR_HANDLER_H

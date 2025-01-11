@@ -6,41 +6,42 @@
 #include <sys/stat.h>
 
 #include "../constants.h"
-#include "../error-handler/error_handler.h"
+#include "../error_handler/error_handler.h"
 #include "../lib/root_file_path_constructor/root_file_path_constructor.h"
 
-static Stack *last_item = NULL;
+static Stack* last_item = NULL;
 FreeData free_data_pointer;
 
-void stack_init(const FreeData *p_free_data) {
+void stack_init(const FreeData* p_free_data) {
     free_data_pointer = *p_free_data;
     last_item = NULL;
 }
 
 void stack_free() {
-    Stack *current = last_item;
+    Stack* current = last_item;
 
     while (current != NULL) {
-        Stack *temp = current;
-        current = current->prev;
+        Stack* temp = current->prev;
 
-        if (current && current->destroy) {
+        if (current->destroy) {
             current->destroy(current->data);
-        } else if (current) {
-            handle_error(&(AppError){
+        }
+        else {
+            handle_error(&(AppError) {
                 LEVEL_WARNING,
                 WARNING_POSSIBLE_MEMORY_LEAK
             });
         }
 
-        free(temp);
+        free(current);
+        current = temp;
     }
 
     last_item = NULL;
 }
 
 void stack_display() {
-    Stack *current = last_item;
+    Stack* current = last_item;
 
     while (current != NULL) {
         if (current->print != NULL) {
@@ -49,8 +50,9 @@ void stack_display() {
             }
 
             current->print(current->data);
-        } else {
-            handle_error(&(AppError){
+        }
+        else {
+            handle_error(&(AppError) {
                 LEVEL_ERROR_PANIC,
                 ERROR_IMPLEMENTATION_INVALID
             });
@@ -60,10 +62,10 @@ void stack_display() {
     }
 }
 
-Stack *stack_push(void *data, void (*print)(void *data), void (*serialize)(void *data, FILE *file), void *(*deserialize)(FILE *file), void (*destroy)(void *data)) {
-    Stack *new_stack_item = (Stack *)malloc(sizeof(Stack));
+Stack* stack_push(void* data, void (*print)(void* data), void (*serialize)(void* data, FILE* file), void* (*deserialize)(FILE* file), void (*destroy)(void* data)) {
+    Stack* new_stack_item = (Stack*)malloc(sizeof(Stack));
     if (new_stack_item == NULL) {
-        handle_error(&(AppError){
+        handle_error(&(AppError) {
             LEVEL_ERROR,
             ERROR_MEMORY_ALLOCATION
         });
@@ -79,7 +81,8 @@ Stack *stack_push(void *data, void (*print)(void *data), void (*serialize)(void 
 
     if (destroy) {
         new_stack_item->destroy = destroy;
-    } else {
+    }
+    else {
         new_stack_item->destroy = NULL;
     }
 
@@ -88,9 +91,9 @@ Stack *stack_push(void *data, void (*print)(void *data), void (*serialize)(void 
     return new_stack_item;
 }
 
-void *stack_pop() {
+void* stack_pop() {
     if (last_item == NULL) {
-        handle_error(&(AppError){
+        handle_error(&(AppError) {
             LEVEL_INFO,
             INFO_MESSAGE_EMPTY_STACK
         });
@@ -98,8 +101,8 @@ void *stack_pop() {
         return NULL;
     }
 
-    Stack *p = last_item;
-    void *data = p->data;
+    Stack* p = last_item;
+    void* data = p->data;
 
     last_item = last_item->prev;
     free(p);
@@ -107,57 +110,112 @@ void *stack_pop() {
     return data;
 }
 
-void *stack_search(bool (*match)(void *data, void *search_data), void *search_data) {
-    Stack *current = last_item;
+void** stack_search(bool (*match)(void* data, void* searchData), void* searchData, size_t* matchCount) {
+    size_t capacity = 2;
+    Stack* current = last_item;
+    *matchCount = 0;
+
+    void** results = malloc(capacity * sizeof(void*));
+
+    if (!results) {
+        handle_error(&(AppError) {
+            LEVEL_ERROR_PANIC,
+            ERROR_MEMORY_ALLOCATION
+        });
+
+        return NULL;
+    }
 
     while (current != NULL) {
-        if (match(current->data, search_data)) {
-            return current->data;
+        if (!match(current->data, searchData)) {
+            current = current->prev;
+            continue;
         }
 
+        if (*matchCount == capacity) {
+            // I like this concept of capacity from Go standard library.
+            // In append function implementation it's done the same way.
+            // In order to prevent wasting memory, after scaling capacity to 256, we multiply by smaller value.
+            if (capacity >= 256) {
+                capacity = (size_t)floor(capacity * 1.25);
+            }
+            else {
+                capacity *= 2;
+            }
+
+            void** resized_results = realloc(results, capacity * sizeof(void*));
+
+            if (!resized_results) {
+                free(results);
+
+                handle_error(&(AppError) {
+                    LEVEL_ERROR_PANIC,
+                    ERROR_MEMORY_ALLOCATION
+                });
+
+                return NULL;
+            }
+
+            results = resized_results;
+        }
+
+
+        results[*matchCount] = current->data;
+        *matchCount += 1;
         current = current->prev;
     }
 
-    return NULL;
+    if (*matchCount == 0) {
+        free(results);
+        return NULL;
+    }
+
+    return results;
 }
 
-void *stack_save_to_file(char *fileName) {
-    char *file_path = construct_root_file_path("./../", fileName, ".bin");
-    FILE *file = fopen(file_path, "wb");
+void* stack_save_to_file(char* fileName) {
+    char* file_path = construct_root_file_path("./", fileName, ".bin");
+    FILE* file = fopen(file_path, "wb");
 
     if (!file) {
         free(file_path);
 
-        handle_error(&(AppError){
+        handle_error(&(AppError) {
             LEVEL_ERROR_PANIC,
             ERROR_EXIT
         });
+
+        return NULL;
     }
 
-    Stack *current = last_item;
+    Stack* current = last_item;
     while (current != NULL) {
         if (current->serialize) {
             current->serialize(current->data, file);
-        } else {
-            handle_error(&(AppError){
-               LEVEL_ERROR_PANIC,
-               ERROR_IMPLEMENTATION_INVALID
-           });
+        }
+        else {
+            handle_error(&(AppError) {
+                LEVEL_ERROR_PANIC,
+                ERROR_IMPLEMENTATION_INVALID
+            });
         }
         current = current->prev;
     }
 
+    free(file_path);
     fclose(file);
 
+    //SF: warning C4033: 'stack_save_to_file' must return a value
+    return NULL;
 }
 
-void *stack_read_from_file(char *fileName, void (*print)(void *data), void (*serialize)(void *data, FILE *file), void *(*deserialize)(FILE *file), void (*destroy)(void *data)) {
-    char *file_path = construct_root_file_path("./../", fileName, ".bin");
-    FILE *file = fopen(file_path, "rb");
+void* stack_read_from_file(char* fileName, void (*print)(void* data), void (*serialize)(void* data, FILE* file), void* (*deserialize)(FILE* file), void (*destroy)(void* data)) {
+    char* file_path = construct_root_file_path("./", fileName, ".bin");
+    FILE* file = fopen(file_path, "rb");
     free(file_path);
 
     if (!file) {
-        handle_error(&(AppError){
+        handle_error(&(AppError) {
             LEVEL_ERROR,
             ERROR_FAILED_TO_OPEN_FILE
         });
@@ -167,9 +225,10 @@ void *stack_read_from_file(char *fileName, void (*print)(void *data), void (*ser
 
     last_item = NULL;
 
-    while (!feof(file)) {
-        void *data = deserialize(file);
-        if (!data) {
+    while (true) {
+        void* data = deserialize(file);
+
+        if (data == NULL) {
             break;
         }
 
@@ -177,6 +236,9 @@ void *stack_read_from_file(char *fileName, void (*print)(void *data), void (*ser
     }
 
     fclose(file);
+    //SF: warning C4715: 'stack_read_from_file': not all control paths return a value
+
+    return NULL;
 }
 
 void stack_reverse() {
@@ -184,9 +246,9 @@ void stack_reverse() {
         return;
     }
 
-    Stack *prev = NULL;
-    Stack *current = last_item;
-    Stack *next = NULL;
+    Stack* prev = NULL;
+    Stack* current = last_item;
+    Stack* next = NULL;
 
     while (current != NULL) {
         next = current->prev;

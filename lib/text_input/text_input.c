@@ -2,38 +2,39 @@
 
 #include <stdlib.h>
 
-#include "../../error-handler/error_handler.h"
+#include "../../error_handler/error_handler.h"
 
-char *text_input(FILE* fp, size_t size){
-    char *str;
-    int ch;
-    size_t len = 0;
-    str = realloc(NULL, sizeof(*str)*size);
+#define INPUT_BUFFER_INCREMENT 16
 
-    if(!str) {
-        handle_error(&(struct AppError){
+char* text_input(FILE* fp, size_t size) {
+    char* str = malloc(size);
+    if (!str) {
+        handle_error(&(AppError) {
             LEVEL_ERROR,
             ERROR_MEMORY_ALLOCATION
         });
+        return NULL;
+    }
 
-        return str;
-    };
+    size_t len = 0;
+    int ch;
 
-    while ((ch = getchar()) != '\n' && ch != EOF){
-        str[len++]=ch;
-        if(len==size){
-            str = realloc(str, sizeof(*str)*(size+=16));
-
-            if(!str) {
-                handle_error(&(struct AppError){
+    while ((ch = fgetc(fp)) != '\n' && ch != EOF) {
+        if (len + 1 == size) {
+            char* new_str = realloc(str, size += INPUT_BUFFER_INCREMENT);
+            if (!new_str) {
+                free(str);
+                handle_error(&(AppError) {
                     LEVEL_ERROR,
                     ERROR_MEMORY_ALLOCATION
                 });
-
-                return str;
-            };
+                return NULL;
+            }
+            str = new_str;
         }
+        str[len++] = ch;
     }
-    str[len++]='\0';
-    return realloc(str, sizeof(*str)*len);
+
+    str[len] = '\0';
+    return str;
 }
